@@ -814,8 +814,8 @@ def computes_ts_coverage(k, outputs, two_symbols):
 			output = [0,1]
 		else:
 			output = [outputs[statenum]]
-		for t in output:
-			for implicant, permut_indxs, same_symbols_indxs in two_symbols[t]:
+		for i, t in enumerate(output):
+			for implicant, permut_indxs, same_symbols_indxs in two_symbols[i]:
 				if __ts_covers(implicant, permut_indxs, binstate):
 					covering_twosymbols.append( (implicant, permut_indxs, same_symbols_indxs) )
 	#
