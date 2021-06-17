@@ -823,35 +823,6 @@ def __ts_covers(two_symbol, permut_indexes, input, verbose=False):
         """
     return False
 
-<<<<<<< HEAD
-def computes_ts_coverage(k, outputs, two_symbols):
-	""" Computes the input coverage by Two Symbol schematas.
-	
-	Args:
-		k (int): the number of inputs.
-		outpus (list): the list of transition outputs.
-		two_symbols (list): The final list of Two Symbol permutable schematas.
-			This is returned by `find_two_symbols`.
-	Returns:
-		coverage (dict): a dictionary of coverage where keys are inputs states and values are lists of the Two Symbols covering that input.
-	"""
-	ts_coverage = {}
-	for statenum in range(2**k):
-		binstate = statenum_to_binstate(statenum, base=k)
-		ts_coverage[binstate] = covering_twosymbols = []
-		output = outputs[statenum]
-		if output == 2:
-			output = [0,1]
-		else:
-			output = [outputs[statenum]]
-		for i, t in enumerate(output):
-			for implicant, permut_indxs, same_symbols_indxs in two_symbols[i]:
-				if __ts_covers(implicant, permut_indxs, binstate):
-					covering_twosymbols.append( (implicant, permut_indxs, same_symbols_indxs) )
-	#
-	return ts_coverage
-=======
->>>>>>> 6cf7d8d72e33d5765ad9812ea59ce65cf4fc3f84
 
 def computes_ts_coverage(k, outputs, two_symbols):
     """ Computes the input coverage by Two Symbol schematas.
