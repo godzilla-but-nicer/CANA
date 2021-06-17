@@ -42,24 +42,33 @@ class BooleanNetwork:
 
         self.name = name                            # Name of the Network
         self.Nnodes = Nnodes                        # Number of Nodes
-        self.logic = logic                          # A dict that contains the network logic {<id>:{'name':<string>,'in':<list-input-node-id>,'out':<list-output-transitions>},..}
+        # A dict that contains the network logic {<id>:{'name':<string>,'in':<list-input-node-id>,'out':<list-output-transitions>},..}
+        self.logic = logic
         self._sg = sg                               # Structure-Graph (SG)
-        self._stg = stg                             # State-Transition-Graph (STG)
-        self._stg_r = stg_r                         # State-Transition-Graph Reachability dict (STG-R)
-        self._eg = None                             # Effective Graph, computed from the effective connectivity
+        # State-Transition-Graph (STG)
+        self._stg = stg
+        # State-Transition-Graph Reachability dict (STG-R)
+        self._stg_r = stg_r
+        # Effective Graph, computed from the effective connectivity
+        self._eg = None
         self._attractors = attractors               # Network Attractors
         #
-        self.keep_constants = keep_constants        # Keep/Include constants in some of the computations
-        self.constants = constants                  # A dict that contains of constant variables in the network
-        self.Nconstants = len(constants)            # Number of constant variables
+        # Keep/Include constants in some of the computations
+        self.keep_constants = keep_constants
+        # A dict that contains of constant variables in the network
+        self.constants = constants
+        # Number of constant variables
+        self.Nconstants = len(constants)
         #
-        self.Nstates = 2**Nnodes                    # Number of possible states in the network 2^N
+        # Number of possible states in the network 2^N
+        self.Nstates = 2**Nnodes
         #
         self.verbose = verbose
 
         # Intanciate BooleanNodes
         self.name2int = {logic[i]['name']: i for i in range(Nnodes)}
-        self.Nself_loops = sum([self.name2int[logic[i]['name']] in logic[i]['in'] for i in range(Nnodes)])
+        self.Nself_loops = sum(
+            [self.name2int[logic[i]['name']] in logic[i]['in'] for i in range(Nnodes)])
 
         self.nodes = list()
         for i in range(Nnodes):
@@ -67,14 +76,19 @@ class BooleanNetwork:
             k = len(logic[i]['in'])
             inputs = [self.name2int[logic[j]['name']] for j in logic[i]['in']]
             outputs = logic[i]['out']
-            node = BooleanNode(id=i, name=name, k=k, inputs=inputs, outputs=outputs, network=self)
+            node = BooleanNode(id=i, name=name, k=k,
+                               inputs=inputs, outputs=outputs, network=self)
             self.nodes.append(node)
 
-        self.input_nodes = [i for i in range(Nnodes) if (self.nodes[i].constant or ((self.nodes[i].k == 1) and (i in self.nodes[i].inputs)))]
+        self.input_nodes = [i for i in range(Nnodes) if (self.nodes[i].constant or (
+            (self.nodes[i].k == 1) and (i in self.nodes[i].inputs)))]
         #
-        self.bin2num = bin2num                      # Helper function. Converts binstate to statenum. It gets updated by `_update_trans_func`
-        self.num2bin = num2bin                      # Helper function. Converts statenum to binstate. It gets updated by `_update_trans_func`
-        self._update_trans_func()                   # Updates helper functions and other variables
+        # Helper function. Converts binstate to statenum. It gets updated by `_update_trans_func`
+        self.bin2num = bin2num
+        # Helper function. Converts statenum to binstate. It gets updated by `_update_trans_func`
+        self.num2bin = num2bin
+        # Updates helper functions and other variables
+        self._update_trans_func()
 
     def __str__(self):
         node_names = [node.name for node in self.nodes]
@@ -120,12 +134,12 @@ class BooleanNetwork:
 
             .. code-block:: text
 
-                #.v = number of nodes
+                # .v = number of nodes
                 .v 1
-                #.l = node label
+                # .l = node label
                 .l 1 node-a
                 .l 2 node-b
-                #.n = (node number) (in-degree) (input node 1) … (input node k)
+                # .n = (node number) (in-degree) (input node 1) … (input node k)
                 .n 1 2 4 5
                 01 1 # transition rule
 
@@ -151,9 +165,11 @@ class BooleanNetwork:
                     inode = int(line.split()[1]) - 1
                     indegree = int(line.split()[2])
                     for jnode in range(indegree):
-                        logic[inode]['in'].append(int(line.split()[3 + jnode]) - 1)
+                        logic[inode]['in'].append(
+                            int(line.split()[3 + jnode]) - 1)
 
-                    logic[inode]['out'] = [0 for i in range(2**indegree) if indegree > 0]
+                    logic[inode]['out'] = [
+                        0 for i in range(2**indegree) if indegree > 0]
 
                     logic_line = network_file.readline().strip()
 
@@ -166,7 +182,8 @@ class BooleanNetwork:
                     else:
                         while logic_line != '\n' and logic_line != '' and len(logic_line) > 1:
                             for nlogicline in expand_logic_line(logic_line):
-                                logic[inode]['out'][binstate_to_statenum(nlogicline.split()[0])] = int(nlogicline.split()[1])
+                                logic[inode]['out'][binstate_to_statenum(
+                                    nlogicline.split()[0])] = int(nlogicline.split()[1])
                             logic_line = network_file.readline().strip()
 
                 # .e = end of file
@@ -210,7 +227,8 @@ class BooleanNetwork:
             if line[0] == '#':
                 line = network_file.readline()
                 continue
-            logic[i] = {'name': line.split("*")[0].strip(), 'in': [], 'out': []}
+            logic[i] = {'name': line.split(
+                "*")[0].strip(), 'in': [], 'out': []}
             line = network_file.readline()
             i += 1
 
@@ -225,8 +243,10 @@ class BooleanNetwork:
             eval_line = line.split("=")[1]  # logical condition to evaluate
             # RE checks for non-alphanumeric character before/after node name (node names are included in other node names)
             # Additional characters added to eval_line to avoid start/end of string complications
-            input_names = [logic[node]['name'] for node in logic if re.compile('\W' + logic[node]['name'] + '\W').search('*' + eval_line + '*')]
-            input_nums = [node for input in input_names for node in logic if input == logic[node]['name']]
+            input_names = [logic[node]['name'] for node in logic if re.compile(
+                '\W' + logic[node]['name'] + '\W').search('*' + eval_line + '*')]
+            input_nums = [
+                node for input in input_names for node in logic if input == logic[node]['name']]
             logic[i]['in'] = input_nums
             # Determine output transitions
             logic[i]['out'] = output_transitions(eval_line, input_names)
@@ -291,14 +311,17 @@ class BooleanNetwork:
         bns_string = '.v ' + str(self.Nnodes) + '\n' + '\n'
         for i in range(self.Nnodes):
             k = len(logic[i]['in'])
-            bns_string += '.n ' + str(i + 1) + " " + str(k) + " " + " ".join([str(v + 1) for v in logic[i]['in']]) + "\n"
+            bns_string += '.n ' + str(i + 1) + " " + str(k) + " " + \
+                                      " ".join([str(v + 1)
+                                               for v in logic[i]['in']]) + "\n"
             for statenum in range(2**k):
                 # If is a constant (TODO: This must come from the BooleanNode, not the logic)
                 if len(logic[i]['out']) == 1:
                     bns_string += str(logic[i]['out'][statenum]) + "\n"
                 # Not a constant, print the state and output
                 else:
-                    bns_string += statenum_to_binstate(statenum, base=k) + " " + str(logic[i]['out'][statenum]) + "\n"
+                    bns_string += statenum_to_binstate(statenum, base=k) + " " + str(
+                        logic[i]['out'][statenum]) + "\n"
             bns_string += "\n"
 
         if file is None:
@@ -309,7 +332,8 @@ class BooleanNetwork:
                     iofile.write(bns_string)
                     iofile.close()
             else:
-                raise AttributeError("File format not supported. Please specify a string.")
+                raise AttributeError(
+                    "File format not supported. Please specify a string.")
 
     #
     # Methods
@@ -326,7 +350,8 @@ class BooleanNetwork:
         self._sg = nx.DiGraph(name="Structural Graph: " + self.name)
 
         # Add Nodes
-        self._sg.add_nodes_from((i, {'label': n.name}) for i, n in enumerate(self.nodes))
+        self._sg.add_nodes_from((i, {'label': n.name})
+                                for i, n in enumerate(self.nodes))
         for target in range(self.Nnodes):
             for source in self.logic[target]['in']:
                 self._sg.add_edge(source, target, **{'weight': 1.})
@@ -378,12 +403,13 @@ class BooleanNetwork:
             G (networkx.Digraph) : The boolean network structural graph.
         """
         signed_ig = nx.DiGraph(name="Signed Interaction Graph: " + self.name)
-        signed_ig.add_nodes_from((i, {'label': n.name}) for i, n in enumerate(self.nodes))
-        
+        signed_ig.add_nodes_from((i, {'label': n.name})
+                                 for i, n in enumerate(self.nodes))
+
         for target in range(self.Nnodes):
-        	
+
         	input_signs = self.nodes[target].input_signs()
-            
+
             for idx,source in enumerate(self.logic[target]['in']):
                 signed_ig.add_edge(source, target, **{'weight': input_signs[idx]})
 
