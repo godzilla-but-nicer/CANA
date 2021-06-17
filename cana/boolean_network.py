@@ -396,7 +396,7 @@ class BooleanNetwork:
         return sorted([d for n, d in self._sg.out_degree()], reverse=True)
 
     def signed_interaction_graph(self):
-    	"""Calculates and returns the signed interaction graph of the boolean network.  Here, edge weights denote
+        """Calculates and returns the signed interaction graph of the boolean network.  Here, edge weights denote
         if an interaction is activation (1), inhibition (-1), or cannot be classified (0).
 
         Returns:
