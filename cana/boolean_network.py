@@ -397,7 +397,7 @@ class BooleanNetwork:
 
     def signed_interaction_graph(self):
     	"""Calculates and returns the signed interaction graph of the boolean network.  Here, edge weights denote
-    	if an interaction is activation (1), inhibition (-1), or cannot be classified (0).
+        if an interaction is activation (1), inhibition (-1), or cannot be classified (0).
 
         Returns:
             G (networkx.Digraph) : The boolean network structural graph.
@@ -407,10 +407,9 @@ class BooleanNetwork:
                                  for i, n in enumerate(self.nodes))
 
         for target in range(self.Nnodes):
+            input_signs = self.nodes[target].input_signs()
 
-        	input_signs = self.nodes[target].input_signs()
-
-            for idx,source in enumerate(self.logic[target]['in']):
+            for idx, source in enumerate(self.logic[target]['in']):
                 signed_ig.add_edge(source, target, **{'weight': input_signs[idx]})
 
         return signed_ig
